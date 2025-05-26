@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Lançamento com Canhão</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background-color: #cce6ff;
+    }
+    canvas {
+      border: 2px solid #000;
+      background: linear-gradient(to top, #87cefa 70%, #ffffff 30%);
+    }
+    .controls {
+      margin: 15px;
+    }
+    .info {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    #botao{
+      border-radius: 5px;
+      background-color: #87cefa;
+    }
+    #botao:hover{
+      background-color: #cce6ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>💥 Pessoa Lançada por um Canhão!</h1>
+
+  <div class="controls">
+    <label>Velocidade Inicial (m/s): <input type="number" id="vel" value="25"></label>
+    <label>Ângulo (°): <input type="number" id="ang" value="45" min="-360" max="360"></label>
+    <label>Altura do Canhão (m): <input type="range" id="altura" min="0" max="20" value="0" step="1" oninput="document.getElementById('hlabel').innerText = this.value + ' m'">
+      <span id="hlabel">0 m</span>
+    </label>
+    <button id="botao" onclick="simular()">Lançar!</button>
+  </div>
+
+  <canvas id="canvas" width="900" height="500"></canvas>
+
+  <div class="info" id="resultado"></div>
+
+  <script>
+    const g = 9.8;
+    let animationId;
+
+    function simular() {
+      cancelAnimationFrame(animationId);
+
+      const vel = parseFloat(document.getElementById("vel").value);
+      const angDeg = Math.max(-360, Math.min(360, parseFloat(document.getElementById("ang").value)));
+      const altura = parseFloat(document.getElementById("altura").value);
+      const ang = angDeg * Math.PI / 180;
+
+      const vx = vel * Math.cos(ang);
+      const vy = vel * Math.sin(ang);
+
+      // Ajustar tempo de voo com altura
+      const t_total = (vy + Math.sqrt(vy ** 2 + 2 * g * altura)) / g + vy / g;
+      const x_max = vx * t_total;
+      const h_max = (vy ** 2) / (2 * g) + altura;
+
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const escalaX = canvas.width / (x_max + 10);
+      const escalaY = canvas.height / (h_max + 10);
+
+      let t = 0;
+
+      function desenhar() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Fundo
+        ctx.fillStyle = "#87cefa";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#228B22";
+        ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+
+        // Desenhar o canhão
+        const baseX = 50;
+        const baseY = canvas.height - 20 - altura * escalaY;
+        desenharCanhao(ctx, angDeg, baseX, baseY);
+
+        const x = vx * t;
+        const y = altura + (vy * t - 0.5 * g * t * t);
+
+        const px = baseX + x * escalaX;
+        const py = canvas.height - (y * escalaY) - 20;
+
+        // Boneco-palito
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(t * 3);
+        desenharBoneco(ctx);
+        ctx.restore();
+
+        if (y >= 0) {
+          t += 0.02;
+          animationId = requestAnimationFrame(desenhar);
+        } else {
+          mostrarResultados(x_max, h_max, t_total);
+        }
+      }
+
+      desenhar();
+    }
+
+    function desenharCanhao(ctx, angDeg, baseX, baseY) {
+      ctx.save();
+      ctx.translate(baseX, baseY);
+      ctx.rotate(-angDeg * Math.PI / 180);
+
+      ctx.fillStyle = "#555";
+      ctx.fillRect(0, -10, 60, 20); // tubo do canhão
+      ctx.restore();
+
+      // roda
+      ctx.beginPath();
+      ctx.arc(baseX, baseY, 15, 0, 2 * Math.PI);
+      ctx.fillStyle = "#333";
+      ctx.fill();
+    }
+
+    function desenharBoneco(ctx) {
+      ctx.strokeStyle = "red";
+      ctx.lineWidth = 2;
+
+      // Cabeça
+      ctx.beginPath();
+      ctx.arc(0, -10, 5, 0, 2 * Math.PI);
+      ctx.stroke();
+
+      // Corpo
+      ctx.beginPath();
+      ctx.moveTo(0, -5);
+      ctx.lineTo(0, 10);
+      ctx.stroke();
+
+      // Braços
+      ctx.beginPath();
+      ctx.moveTo(-8, 0);
+      ctx.lineTo(8, 0);
+      ctx.stroke();
+
+      // Pernas
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.lineTo(-5, 18);
+      ctx.moveTo(0, 10);
+      ctx.lineTo(5, 18);
+      ctx.stroke();
+    }
+
+    function mostrarResultados(dist, alt, tempo) {
+      const res = document.getElementById("resultado");
+      res.innerHTML = `
+        🛫 Distância Máxima: ${dist.toFixed(2)} m <br>
+        📏 Altura Máxima: ${alt.toFixed(2)} m <br>
+        ⏱️ Tempo de Voo: ${tempo.toFixed(2)} s
+      `;
+    }
+
+    simular(); // primeira simulação
+  </script>
+</body>
+</html>
