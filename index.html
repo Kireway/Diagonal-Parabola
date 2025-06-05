@@ -30,7 +30,7 @@
   </style>
 </head>
 <body>
-  <h1>💥 Pessoa Lançada por um Canhão!</h1>
+  <h1>Parabola</h1>
 
   <div class="controls">
     <label>Velocidade Inicial (m/s): <input type="number" id="vel" value="25"></label>
@@ -131,6 +131,7 @@
     function desenharBoneco(ctx) {
       ctx.strokeStyle = "red";
       ctx.lineWidth = 2;
+      
 
       // Cabeça
       ctx.beginPath();
@@ -161,9 +162,9 @@
     function mostrarResultados(dist, alt, tempo) {
       const res = document.getElementById("resultado");
       res.innerHTML = `
-        🛫 Distância Máxima: ${dist.toFixed(2)} m <br>
-        📏 Altura Máxima: ${alt.toFixed(2)} m <br>
-        ⏱️ Tempo de Voo: ${tempo.toFixed(2)} s
+         Distância Máxima: ${dist.toFixed(2)} m <br>
+         Altura Máxima: ${alt.toFixed(2)} m <br>
+         Tempo de Voo: ${tempo.toFixed(2)} s
       `;
     }
 
